@@ -1,35 +1,33 @@
-# 0. 前言
+# 0. Preface
 
-随着 [PouchContainer](https://github.com/alibaba/pouch) 功能不断地迭代和完善，项目也逐渐庞大起来，这吸引了不少外部开发者来参与项目的开发。由于每位贡献者编码习惯都不尽相同，代码审阅者的责任不仅仅是关注逻辑正确性和性能问题，还应该关注代码风格，因为统一的代码规范是保证项目代码可维护的前提。除了统一项目代码风格之外，测试用例的覆盖率和稳定性也是项目关注的重点。简单设想下，在缺少回归测试用例的项目，如何保证每次代码更新都不会影响到现有功能？
+With the development of [PouchContainer](https://github.com/alibaba/pouch), the functions are getting abundant and the project is getting vast, therefore many outside developer are attracted to join the developing of the project. Since the coding style of different person can be diverse while the unified coding style is the prerequisite of the code maintenance, the reviewer has the responsibility of not only checking the correctness and the  performance of the code but also unifying the style of the code. What's more, the coverage and the stability of the test cases are also important points requiring more attention. You can simply imagine how the project lacking the regression test case ensure that the update of the code won't affect the current function every time. 
 
-本文会分享 PouchContainer 在代码风格规范和 golang 单元测试用例方面的实践。
+In this passage, the coding style regulation exercise and the unit test case instance of golang will be explained. 
 
-# 1. 统一的编码风格规范
+# 1. Unified coding style regulation 
+PouchContainer is a project developed in golang where shell script is used to complete some automated operation, such as compilation and packaging. Besides golang and shell script, PouchContainer also contains loads of Markdown documents which are the entrance for users getting to know PouchContainer so that the regulated typesetting and the corrected spelling are also important aspects that need more focus. In the following chapter, the coding style regulation and the application scenario of PouchContainer will be introduced. 
 
-PouchContainer 是由 golang 语言构建的项目，项目里会使用 shell script 来完成一些自动化操作，比如编译和打包操作。除了 golang 和 shell script 以外，PouchContainer 还包含了大量 Markdown 风格的文档，它是使用者认识和了解 PouchContainer 的入口，它的规范排版和正确拼写也是项目的关注对象。接下来的内容将会介绍 PouchContainer 在编码风格规范上使用的工具和使用场景。
+## 1.1 Golinter - the unified coding style
+The grammar of golong is designed simply and the community is full of [CodeReview](https://github.com/golang/go/wiki/CodeReviewComments) instruction so that most of the golang projects have the similar coding style and few of them will get stuck with the __religion__ fight. Basing on the community, PouchContainer also defines some specific rules to regulate developer to ensure the readability of their code. The details of the rules can be found [there](https://github.com/alibaba/pouch/blob/master/docs/contributions/code_styles.md#additional-style-rules).
 
-## 1.1 Golinter - 统一代码格式
+But it's hard to ensure the unification of the project coding style simply relying on the written agreement. Therefore, like other languages, golang has official fundamental tool chain such as [golint](https://github.com/golang/lint),  [gofmt](https://golang.org/cmd/gofmt)，[goimports](https://github.com/golang/tools/blob/master/cmd/goimports/doc.go) and [go vet](https://golang.org/cmd/vet),etc. Those tools can be used to check and unify the coding style before compilation to make the automated coding review possible. For now,  PouchContainer will run above checking tools in CircleCI before __<span data-type="color" style="color:#F5222D">every</span>__ pull request raised by developer. If error is detected by those tools, the code reviewer has right to __<span data-type="color" style="color:#F5222D">refuse</span>__   examination or even refuse to merge those code.
 
-golang 的语法设计简单，加上社区一开始都有完备的 [CodeReview](https://github.com/golang/go/wiki/CodeReviewComments) 指导，让绝大部分的 golang 项目都有相同的代码风格，很少陷入到无谓的 __宗教__ 之争。在社区的基础上，PouchContainer 还定义了一些特定的规则来约定开发者，目的是为了保证代码的可读性，具体内容可阅读[这里](https://github.com/alibaba/pouch/blob/master/docs/contributions/code_styles.md#additional-style-rules)。
+Besides the provided official toolkit, we can use the code chekcing toolkit provided by the third party in the open source community as well, such as [errcheck](https://github.com/kisielk/errcheck) can check whether developer has eliminated all of the errors returned by functions. But those tools don't have the same output format, which make it difficult to merge the outputs produced by different tools. The good news is that someone in the community achieves the unified interface of this layer, which is [gometalinter](https://github.com/alecthomas/gometalinter). It can integrate various code checking toolkit, the recommended combinations are:
 
-但光靠书面协议去做规范，这是很难保证项目代码风格保持一致。因此 golang 和其他语言一样，其官方提供了基础的工具链，比如 [golint](https://github.com/golang/lint),  [gofmt](https://golang.org/cmd/gofmt)，[goimports](https://github.com/golang/tools/blob/master/cmd/goimports/doc.go) 以及 [go vet](https://golang.org/cmd/vet) 等等，这些工具可在编译前检查和统一代码风格，为代码审阅等后续流程提供了自动化的可能。目前 PouchContainer 在 __<span data-type="color" style="color:#F5222D">每一次</span>__ 开发者提的 Pull Request 都会在 CircleCI 运行上述的代码检查工具。如果检查工具显示异常，代码审阅者有权 __<span data-type="color" style="color:#F5222D">拒绝</span>__ 审阅，甚至可以拒绝合并代码。
+* [golint](https://github.com/golang/lint) - Google's (mostly stylistic) linter.
+* [gofmt -s](https://golang.org/cmd/gofmt/) - Checks if the code is properly formatted and could not be further simplified.
+* [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports) - Checks missing or unreferenced package imports.
+* [go vet](https://golang.org/cmd/vet/) - Reports potential errors that otherwise compile.
+* [varcheck](https://github.com/opennota/check) - Find unused global variables and constants.
+* [structcheck](https://github.com/opennota/check) - Find unused struct fields
+* [errcheck](https://github.com/kisielk/errcheck) - Check that error return values are used.
+* [misspell](https://github.com/client9/misspell) - Finds commonly misspelled English words.
 
-除了官方提供的工具外，我们还可以在开源社区中选择第三方的代码检查工具，比如 [errcheck](https://github.com/kisielk/errcheck) 检查开发者是否都处理了函数返回的 error 。但是这些工具并没有统一的输出格式，这很难完成不同工具输出结果的整合。好在开源社区有人实现了这一层统一的接口，即 [gometalinter](https://github.com/alecthomas/gometalinter)，它可以整合各种代码检查工具，推荐采用的组合是：
+Every project can order specific gometalinter combination basing on their needs.
 
-* [golint](https://github.com/golang/lint) - Google's (mostly stylistic) linter.
-* [gofmt -s](https://golang.org/cmd/gofmt/) - Checks if the code is properly formatted and could not be further simplified.
-* [goimports](https://godoc.org/golang.org/x/tools/cmd/goimports) - Checks missing or unreferenced package imports.
-* [go vet](https://golang.org/cmd/vet/) - Reports potential errors that otherwise compile.
-* [varcheck](https://github.com/opennota/check) - Find unused global variables and constants.
-* [structcheck](https://github.com/opennota/check) - Find unused struct fields
-* [errcheck](https://github.com/kisielk/errcheck) - Check that error return values are used.
-* [misspell](https://github.com/client9/misspell) - Finds commonly misspelled English words.
+## 1.2 Shellcheck - reduce potential problem in shell script
 
-每个项目都可以根据自己的需求来订制 gometalinter 套餐。
-
-## 1.2 Shellcheck - 减少 shell script 潜在问题
-
-shell script 虽然功能强大，但是它依然需要语法检查来避免一些潜在的、不可预判的错误。比如定义了未使用的变量，虽然不影响脚本的使用，但是它的存在会成为项目维护者的负担。
+Although shell script has powerful functions, it still needs grammar check to avoid some potential and unpredictable error, such as the definition of the unused variable, which won't affect the normal function of the script but its existence will become the burden of the maintenance. 
 
 ```powershell
 #!/usr/bin/env bash
@@ -43,7 +41,7 @@ dosomething() {
 dosomething
 ```
 
-PouchContainer 会使用 [shellcheck](https://github.com/koalaman/shellcheck) 来检查目前项目里的 shell script。就以上述代码为例，shellcheck 检测会获得未使用变量的警告。该工具可以在代码审阅阶段发现 shell script 潜在的问题，减少运行时出错的概率。
+PouchContainer will use [shellcheck](https://github.com/koalaman/shellcheck) to check the shell scripts in the current project. Taking the above code as an example, shellcheck will raise the warning that there is unused variable. This toll can detect the potential problems in shell script to reduce the error probability in running. 
 
 ```plain
 In test.sh line 3:
@@ -51,31 +49,32 @@ pouch_version=0.5.x
 ^-- SC2034: pouch_version appears unused. Verify it or export it.
 ```
 
-PouchContainer 当前的持续集成任务会扫描项目里 `.sh` 脚本，并逐一使用 shellcheck 来检查，详情请查看[这里](https://github.com/alibaba/pouch/blob/master/.circleci/config.yml#L21-L24)。
+The current lasting integrating mission of PouchContainer will scan every `.sh` script in the project and use shellcheck to examine them one by one. The details can be found [there](https://github.com/alibaba/pouch/blob/master/.circleci/config.yml#L21-L24)。
 
-> NOTE: 当 shellcheck 检查太过于严格了，项目里可以通过加注释的方式来避开检查，或者是项目里统一关闭某项检查。具体的检查规则可查看[这里](https://github.com/koalaman/shellcheck/wiki)。
 
-## 1.3 Markdownlint - 统一文档格式编排
+> NOTE: When the examination of shellcheck is too strict, the project can use comment to avoid it, or shutdown some specific examination in the project. The detailed checking rule can be found [there](https://github.com/koalaman/shellcheck/wiki)。
 
-PouchContainer 作为开源项目，它的文档同代码一样重要，因为文档是让用户了解 PouchContainer 的最佳方式。文档采用 markdown 的方式来编写，它的编排格式和拼写错误都是项目重点照顾对象。
+## 1.3 Markdownlint - Unified document format
 
-同代码一样，光有文本约定还是会出现漏判，所以 PouchContainer 采用 [markdownlint](https://github.com/markdownlint/markdownlint) 和 [misspell](https://github.com/client9/misspell) 来检查文档格式和拼写错误，这些检查的地位同 `golint` 一样，会在每次 Pull Request 都会在 CircleCI 中运行，一旦出现异常，代码审阅者有权 __<span data-type="color" style="color:#F5222D">拒绝</span>__ 审阅或者合并代码。
+As an open-source project, documents have the same significance as code to PouchContainer. Because documents are the best methods for users get to know PouchContainer. Documents are written in markdown so that its formatting and spelling are mainly focused. 
 
-PouchContainer 当前的持续集成任务会检查项目里的 markdown 文档编排格式，同时还检查了所有文件里的拼写，具体配置可查看[这里](https://github.com/alibaba/pouch/blob/master/.circleci/config.yml#L13-L20)。
+Same as the code, there will be error missing merely relying on written aggrement. Therefore, PouchContainer applies [markdownlint](https://github.com/markdownlint/markdownlint) and [misspell](https://github.com/client9/misspell) to check document format and spelling. These examinations have the same reputation as `golint` which will be called in every Pull Request. Once an error is raised, the code reviewer has right to __<span data-type="color" style="color:#F5222D">refuse </span>__  inspect or merge those code.
 
-> NOTE: 当 markdownlint 要求太过于严格时，项目里可以关闭相应的检查。具体的检查项目可查看[这里](https://github.com/markdownlint/markdownlint/blob/master/docs/RULES.md)。
+The current lasting integration mission in PouchContainer will examine the markdown document formatting and document spelling. The specific configuration is showed [there](https://github.com/alibaba/pouch/blob/master/.circleci/config.yml#L13-L20).
 
-## 1.4 小结
+> NOTE: 
+> When the examination of mardownlint is too strict, the project can use comment to avoid it, or shutdown some specific examination in the project. The detailed checking rule can be found [there](https://github.com/markdownlint/markdownlint/blob/master/docs/RULES.md)。
 
-上述内容都属于风格纪律问题，PouchContainer 将编码规范检测自动化，集成到每一次的代码审阅中，帮助审阅者发现潜在的问题。
+## 1.4 Summary
 
-# 2. 如何编写 golang 的单元测试
+The above content is all about the coding style problem. PouchContainer can check coding grammar automatically which is integrated in every time code review to help code reviewer find potential problems.  
 
-单元测试可用来保证单一模块的正确性。在测试领域的金字塔里，单元测试覆盖面越广，覆盖功能越全，它就越能减少集成测试以及端到端测试所带来的调试成本。在复杂的系统里，任务处理的链路越长，定位问题的成本就越高，尤其是小模块所引发的问题。接下来的内容会分享 PouchContainer 编写 golang 单元测试用例的总结。
+# 2. How to make golang unit testing
 
-## 2.1 Table-Driven<span data-type="color" style="color:rgb(36, 41, 46)"><span data-type="background" style="background-color:rgb(255, 255, 255)"> </span></span>Test - DRY
+Unit testing is used to guarantee the correctness of single module. In the testing pyramid, the broader the coverage of unit testing gets, the more general the covered functions become and the less testing cost generated by integration testing and end-to-end testing. In the complicated system, the longer the dealing chain of a mission is, the higher the cost of problem targeting gets, specially the problem caused by small modules. In the following chapters, the summary of how to develop golang unit testing will be introduced. 
 
-简单地理解单元测试是给定某一个函数既定的输入，判断是否能得到预期的输出。当被测试的函数有各式各样的输入场景时，我们可以采用 Table-Driven 的形式来组织我们的测试用例，如接下来的代码所示。Table-Driven 采用数组的方式来组织测试用例，并通过循环执行的方式来验证函数的正确性。
+## 2.1 Table-Driven<span data-type="color" style="color:rgb(36, 41, 46)"><span data-type="background" style="background-color:rgb(255, 255, 255)"> </span></span>Test - DRY
+We can understand unit testing simply, that is giving a fixed input to some function and determine whether the output is expected. When the tested functions have lots of input scenarios, we could use Table-Driven to organize our test case, which is showed below. Table-Driven applies array to organize test case and uses loop to test the correctness of the function.  
 
 ```go
 // from https://golang.org/doc/code.html#Testing
@@ -84,67 +83,66 @@ package stringutil
 import "testing"
 
 func TestReverse(t *testing.T) {
-	cases := []struct {
-		in, want string
-	}{
-		{"Hello, world", "dlrow ,olleH"},
-		{"Hello, 世界", "界世 ,olleH"},
-		{"", ""},
-	}
-	for _, c := range cases {
-		got := Reverse(c.in)
-		if got != c.want {
-			t.Errorf("Reverse(%q) == %q, want %q", c.in, got, c.want)
-		}
-	}
+    cases := []struct {
+        in, want string
+    }{
+        {"Hello, world", "dlrow ,olleH"},
+        {"Hello, 世界", "界世 ,olleH"},
+        {"", ""},
+    }
+    for _, c := range cases {
+        got := Reverse(c.in)
+        if got != c.want {
+            t.Errorf("Reverse(%q) == %q, want %q", c.in, got, c.want)
+        }
+    }
 }
 ```
-
-为了方便调试和维护测试用例，我们可以加入一些辅助信息来描述当前的测试。比如 [reference](https://github.com/alibaba/pouch/blob/master/pkg/reference/parse_test.go#L54)  想要测试 [punycode](https://en.wikipedia.org/wiki/Punycode) 的输入时，如果不加入 `punycode` 的字样，对于代码审阅者或者项目维护者而言，他们可能不知道 `xn--bcher-kva.tld/redis:3` 和 `docker.io/library/redis:3` 之间的区别。
+For the convenience of testing and maintenance, we can add some aiding information to describe the current testing. For example, [reference](https://github.com/alibaba/pouch/blob/master/pkg/reference/parse_test.go#L54) wants to test the input of [punycode](https://en.wikipedia.org/wiki/Punycode), if there is no `punycode` like word, the code reviewer or project maintainer might not know the difference between `xn--bcher-kva.tld/redis:3` and `docker.io/library/redis:3`
 
 ```go
 {
-		name:  "Normal",
-		input: "docker.io/library/nginx:alpine",
-		expected: taggedReference{
-			Named: namedReference{"docker.io/library/nginx"},
-			tag:   "alpine",
-		},
-		err: nil,
+        name:  "Normal",
+        input: "docker.io/library/nginx:alpine",
+        expected: taggedReference{
+            Named: namedReference{"docker.io/library/nginx"},
+            tag:   "alpine",
+        },
+        err: nil,
 }, {
-		name:  "Punycode",
-		input: "xn--bcher-kva.tld/redis:3",
-		expected: taggedReference{
-			Named: namedReference{"xn--bcher-kva.tld/redis"},
-			tag:   "3",
-		},
-		err: nil,
+        name:  "Punycode",
+        input: "xn--bcher-kva.tld/redis:3",
+        expected: taggedReference{
+            Named: namedReference{"xn--bcher-kva.tld/redis"},
+            tag:   "3",
+        },
+        err: nil,
 }
 ```
+But some fucntions have complicated behaviors, one input can't be taken as a completed test case. Take [TestTeeReader](https://github.com/golang/go/blob/release-branch.go1.9/src/io/io_test.go#L284) as an instance. After TeeReader reads <span data-type="color" style="color:rgb(3, 47, 98)"><span data-type="background" style="background-color:rgb(255, 255, 255)"><code>hello, world</code></span></span><span data-type="color" style="color:rgb(3, 47, 98)"><span data-type="background" style="background-color:rgb(255, 255, 255)"> </span></span><span data-type="background" style="background-color:rgb(255, 255, 255)"> from buffer, data reading is finished. If it tries to read it again, an error end-of-file will be raised. Test case like this needs a separate case to finish with no need to make Table-Drive format on purpose.  
 
-但是有些函数行为比较复杂，一次输入并不能作为一次完整的测试用例。例如 [TestTeeReader](https://github.com/golang/go/blob/release-branch.go1.9/src/io/io_test.go#L284) , TeeReader 从 buffer 里读出 <span data-type="color" style="color:rgb(3, 47, 98)"><span data-type="background" style="background-color:rgb(255, 255, 255)"><code>hello, world</code></span></span><span data-type="color" style="color:rgb(3, 47, 98)"><span data-type="background" style="background-color:rgb(255, 255, 255)"> </span></span><span data-type="background" style="background-color:rgb(255, 255, 255)">之后，已经将数据读取完毕了，如果再去读取，预期的行为是会遇到 end-of-file 的错误。这样的测试用例需要单独一个 case 来完成，不需要硬凑出 Table-Driven 的形式。</span>
+</span>
 
-简单来说，如果你测试某一个函数需要拷贝大部分代码时，理论上这些测试代码都可以抽出来，并使用 Table-Driven 的方式来组织测试用例，<strong><span data-type="color" style="color:#F5222D">Don`t Repeat Yourself</span></strong><span data-type="color" style="color:#F5222D"> </span>是我们遵守的原则。
+Simply speaking, if you want to test some function with lots of code copied, those testing code can be withdrawn and use Table-Drive to organize test case.<strong><span data-type="color" style="color:#F5222D">Don`t Repeat Yourself</span></strong><span data-type="color" style="color:#F5222D"> </span> is the rule we obey. 
 
-> NOTE: Table-Driven 组织方式是 golang 社区所推荐，详情请查看[这里](https://github.com/golang/go/wiki/TableDrivenTests)。
+> NOTE: The organizing method of Table-Driven is recommended by golang community. The details can be found [there](https://github.com/golang/go/wiki/TableDrivenTests)。
+## 2.2 Mock - Mock External Dependency
 
-## 2.2 Mock - 模拟外部依赖
+ During test procedure, we will always encounter dependency issues. For example, PouchContainer client needs HTTP server but it may over fit for units, and this belongs to integration test. So how can we complete this part of integration test?
 
-在测试过程经常会遇到依赖的问题，比如 PouchContainer client 需要 HTTP server ，但这对于单元而言太重，而且这属于集成测试的范畴。那么该如何完成这部分的单元测试呢？
-
-在 golang 的世界里，interface 的实现属于 [Duck Type](https://en.wikipedia.org/wiki/Duck_typing) 。某一个接口可以有各式各样的实现，只要实现能符合接口定义。如果外部依赖是通过 interface 来约束，那么单元测试里就模拟这些依赖行为。接下来的内容将分享两种常见的测试场景。
+In the world of golang, the realization of interface belongs to [Duck Type](https://en.wikipedia.org/wiki/Duck_typing). As long as the realization corresponds to the definition of the interface, there can be different realization at one interface. If external dependency constrains through interface, then the unit testing will mock these dependent behaviors. Here two common testing scenarios will be discussed.
 
 ### 2.2.1 RoundTripper
 
-还是以 PouchContainer client 测试为例。PouchContainer client 所使用的是 [http.Client](https://golang.org/pkg/net/http/#Client)。其中 http.Client 中使用了 [RoundTripper](https://golang.org/pkg/net/http/#RoundTripper) 接口来执行一次 HTTP 请求，它允许开发者自定义发送 HTTP 请求的逻辑，这也是 golang 能在原有基础上完美支持 HTTP 2 协议的重要原因。
+Take PouchContainer client testing as an example. PouchContainer client uses [http.Client](https://golang.org/pkg/net/http/#Client). http.Client [RoundTripper](https://golang.org/pkg/net/http/#RoundTripper) is used to  execute HTTP request， and it allows developer to customize the logic of sending HTTP request, and this is the reason why golang can support HTTP 2 contracts perfectly.
 
 ```plain
 http.Client -> http.RoundTripper [http.DefaultTransport]
 ```
 
-对于 PouchContainer client 而言，测试关注点主要在于传入目的地址是否正确、传入的 query 是否合理，以及是否能正常返回结果等。因此在测试之前，开发者需要准备好对应的 RoundTripper 实现，该实现并不负责实际的业务逻辑，它只是用来判断输入是否符合预期即可。
+For PouchContainer client, the focus of testing is whether the target address is correct, whether incoming query is reasonable and whether the result can be returned normally and so on. Thus before testing, developer should have prepared corresponding RoundTripper realization, and this realization is not responsible for the real business logic. Instead it is only used to see if the input meets the expectation or not.
 
-如接下来的代码所示，PouchContainer `newMockClient` 可接受自定义的请求处理逻辑。在测试删除镜像的用例中，开发者在自定义的逻辑里判断了目的地址和 HTTP Method 是否为 DELETE，这样就可以在不启动 HTTP Server 的情况下完成该有的功能测试。
+As the following codes shown, PouchContainer `newMockClient` can accept customized request processing logic. In the example of testing deleting mirror, developer will decide the target address and if the HTTP Method is DELETE in customized logic, and in this way the functional testing can be completed without HTTP Server being enabled. 
 
 ```go
 // https://github.com/alibaba/pouch/blob/master/client/client_mock_test.go#L12-L22
@@ -191,7 +189,7 @@ func TestImageRemove(t *testing.T) {
 
 ### 2.2.2 MockImageManager
 
-对于内部 package 之间的依赖，比如 PouchContainer Image API Bridge 依赖于 PouchContainer Daemon ImageManager，而其中的依赖行为由 interface 来约定。如果想要测试 Image Bridge 的逻辑，我们不必启动 containerd ，我们只需要像 RoundTripper 那样，实现对应的 Daemon ImageManager 即可。
+For dependency between internal packages (such as PouchContainer Image API Bridge is dependent on PouchContainer Daemon ImageManager), the dependent behavior is decided by interface. If we want to test the logic of Image Bridge, we do not need to enable containerd. Instead we just need to realize corresponding Daemon ImageManager, just like RoundTripper.
 
 ```go
 // https://github.com/alibaba/pouch/blob/master/apis/server/image_bridge_test.go
@@ -222,9 +220,9 @@ func Test_pullImage_without_tag(t *testing.T) {
 }
 ```
 
-### 2.2.3 小结
+### 2.2.3 summary
 
-ImageManager 和 RoundTripper 除了接口定义的函数数目不同以外，模拟的方式是一致的。通常情况下，开发者可以手动定义一个将方法作为字段的结构体，如接下来的代码所示。
+ImageManager and RoundTripper mock in the same way except that the number of functions defined by the interface is different. In general, developer can define a structure in which the method is used as field, as the codes shown below.
 
 ```go
 type Do interface {
@@ -248,19 +246,23 @@ type (m *mockDo) Sub(x int, y int) int {
 }
 ```
 
-当接口比较大、比较复杂的时候，手动的方式会给开发者带来测试上的负担，所以社区提供了自动生成的工具，比如 [mockery](https://github.com/vektra/mockery) ，减轻开发者的负担。
+When the interface is large and complex, a manual way will bring a burden to the testing, so our community provide tools that can automatically generate mocks for interfaces to release burden of developers, such as  [mockery](https://github.com/vektra/mockery).
 
-## 2.3 其他偏门
+## 2.3 others
 
-有些时候依赖的是第三方的服务，比如 PouchContainer client 就是一个很典型的案例。上文介绍 Duck Type 可以完成该案例的测试。除此之外，我们还可以通过注册 http.Handler 的方式，并启动 mockHTTPServer 来完成请求处理。这样测试方式比较重，建议在不能通过 Duck Type 方式测试时再考虑使用，或者是放到集成测试中完成。
+Sometimes this relies on third party service, and a typical example would be PouchContainer client. Duck Type that we introduced above can be used to do this testing. Besides, we can also sign up for http.Handler and enable mockHTTPServer to complete the request of processing. But this testing method will over fit, and thus it is suggested that we use it only when Duck Type cannot achieve the goal or we use it during integration testing. 
 
-> NOTE: golang 社区有人通过修改二进制代码的方式来完成 [monkeypatch](https://github.com/bouk/monkey) 。这个工具不建议使用，还是建议开发者设计和编写出可测试的代码。
+> NOTE: In golang community some people complete  [monkeypatch](https://github.com/bouk/monkey) by adjusting binary codes. This tool is not suggested, and developers are suggested to  write codes which could be tested. 
 
-## 2.4 小结
+## 2.4 summary
 
-PouchContainer 将单元测试用例集成到代码审阅阶段，审阅者可以随时查看测试用例的运行情况。
+PouchContainer integrate unit testing case to code reviewing process, and reviewers can check the code performance of test case at any time. 
+
+# 3. <span data-type="color" style="color:rgb(34, 34, 34)"><span data-type="background" style="background-color:rgb(255, 255, 255)">summary</span></span>
+
+During code reviewing process, we should check codes, and run unit testing and integration testing to help reviewers to make the right decision. Now, PouchContainer mainly checks code and runs test through TravisCI/CircleCI 和 [pouchrobot](https://github.com/pouchcontainer/pouchrobot).
 
 
-# 3. <span data-type="color" style="color:rgb(34, 34, 34)"><span data-type="background" style="background-color:rgb(255, 255, 255)">总结</span></span>
+link: https://github.com/pouchcontainer/blog/blob/master/blog-cn/PouchContainer%20%E5%B7%A5%E7%A8%8B%E8%B4%A8%E9%87%8F%E5%AE%9E%E8%B7%B5.md
 
-在代码审阅阶段，应该通过持续集成的方式，将代码风格检查、单元测试和集成测试跑起来，这样才能帮助审阅者作出准确的决定，而目前 PouchContainer 主要通过 TravisCI/CircleCI 和 [pouchrobot](https://github.com/pouchcontainer/pouchrobot) 来完成代码风格检查和测试等操作。
+
